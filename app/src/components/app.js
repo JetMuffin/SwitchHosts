@@ -8,7 +8,7 @@
 import React from 'react';
 import Panel from './panel/panel';
 import Content from './content/content';
-import SudoPrompt from './frame/sudo';
+import SudoPrompt from './frame/login';
 import EditPrompt from './frame/edit';
 import PreferencesPrompt from './frame/preferences';
 import './app.less';
@@ -17,11 +17,10 @@ class App extends React.Component {
     constructor(props) {
         super(props);
 
-        let _data = SH_Agent.getHosts();
-
+        let _data = SH_Agent.getJobs();
         this.state = {
-            hosts: _data,
-            current: _data.sys
+            jobs: _data,
+            current: _data.demo,
         };
 
         SH_event.on('after_apply', () => {
@@ -65,14 +64,19 @@ class App extends React.Component {
         });
     }
 
-    setCurrent(host) {
+    setCurrent(job) {
         this.setState({
-            current: host.is_sys ? SH_Agent.getSysHosts() : host
+           current: job
         });
+
+        // this.setState({
+        //     current: host.is_sys ? SH_Agent.getSysHosts() : host
+        // });
     }
 
-    static isReadOnly(host) {
-        return host.is_sys || host.where == 'remote';
+    static isReadOnly(job) {
+        return !job.editable;
+        // return host.is_sys || host.where == 'remote';
     }
 
     toSave() {
@@ -83,7 +87,8 @@ class App extends React.Component {
         }, 1000);
     }
 
-    setHostContent(v) {
+
+    setJobContent(v) {
         if (this.state.current.content == v) return; // not changed
 
         this.state.current.content = v || '';
@@ -102,9 +107,9 @@ class App extends React.Component {
         let current = this.state.current;
         return (
             <div id="app" className={'platform-' + platform}>
-                <Panel hosts={this.state.hosts} current={current} setCurrent={this.setCurrent.bind(this)}/>
+                <Panel jobs={this.state.jobs} current={current} setCurrent={this.setCurrent.bind(this)}/>
                 <Content current={current} readonly={App.isReadOnly(current)}
-                         setHostContent={this.setHostContent.bind(this)}/>
+                         setJobContent={this.setJobContent.bind(this)}/>
                 <div className="frames">
                     <SudoPrompt/>
                     <EditPrompt/>

@@ -16,7 +16,8 @@ const BrowserWindow = electron.BrowserWindow;
 
 const tray = require('./src/modules/tray');
 const pref = require('./src/libs/pref');
-let user_language = pref.get('user_language') || (app.getLocale() || '').split('-')[0].toLowerCase() || 'en';
+// let user_language = pref.get('user_language') || (app.getLocale() || '').split('-')[0].toLowerCase() || 'en';
+let user_language = 'cn';
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -28,8 +29,8 @@ let is_tray_initialized;
 function createWindow() {
     // Create the browser window.
     mainWindow = new BrowserWindow({
-        width: 800, height: 500,
-        minWidth: 400, minHeight: 250
+        width: 800, height: 600,
+        minWidth: 400, minHeight: 300
     });
     contents = mainWindow.webContents;
     app.mainWindow = mainWindow;

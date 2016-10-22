@@ -14,7 +14,7 @@ export default class ListItem extends React.Component {
     constructor(props) {
         super(props);
 
-        this.is_sys = !!this.props.sys;
+        this.is_demo = !!this.props.demo;
         this.state = {
             is_selected: false,
             search_kw: '',
@@ -40,7 +40,7 @@ export default class ListItem extends React.Component {
     }
 
     getTitle() {
-        return this.is_sys ? SH_Agent.lang.sys_host_title : this.props.data.title || SH_Agent.lang.untitled;
+        return this.is_demo ? SH_Agent.lang.demo_job_title : this.props.data.title || SH_Agent.lang.untitled;
     }
 
     beSelected() {
@@ -52,18 +52,12 @@ export default class ListItem extends React.Component {
     }
 
     toEdit() {
-        SH_event.emit('edit_host', this.props.data);
+        SH_event.emit('edit_job', this.props.data);
     }
 
-    toggle() {
-        let on = !this.props.data.on;
-
-        this.props.onToggle(() => {
-            this.props.data.on = on;
-            this.forceUpdate();
-        });
-
-        SH_event.emit('toggle_host', on);
+    submit() {
+        if (!confirm(SH_Agent.lang.submit_job + this.props.data.title + '？')) return;
+        SH_event.emit('submit_job', this.props.data);
     }
 
     allowedDrop(e) {
@@ -122,10 +116,9 @@ export default class ListItem extends React.Component {
                             <i className={classnames({
                                 'switch': 1
                                 , 'iconfont': 1
-                                , 'icon-on': data.on
-                                , 'icon-off': !data.on
+                                , 'icon-sysserver': 1
                             })}
-                               onClick={this.toggle.bind(this)}
+                               onClick={this.submit.bind(this)}
                             />
                             <i
                                 className="iconfont icon-edit"

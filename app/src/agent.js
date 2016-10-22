@@ -13,6 +13,7 @@ const request = require('request');
 const moment = require('moment');
 const notifier = require('node-notifier');
 const util = require('./libs/util');
+const ssh = require('ssh2');
 const platform = process.platform;
 
 const paths = require('./libs/paths');
@@ -20,6 +21,7 @@ const pref = require('./libs/pref');
 const sys_host_path = paths.sys_host_path;
 const work_path = paths.work_path;
 const data_path = paths.data_path;
+const job_data_path = paths.job_data_path
 const preference_path = paths.preference_path;
 
 const exec = require('child_process').exec;
@@ -33,6 +35,7 @@ function md5(text) {
 
 const m_lang = require('./lang');
 let sudo_pswd = '';
+let login_data = {};
 
 function getUserLang() {
     let user_lang;
@@ -54,17 +57,17 @@ function getUserLang() {
 let lang_key = getUserLang();
 const lang = m_lang.getLang(lang_key);
 
-
-function getSysHosts() {
-    let cnt = '';
-
-    try {
-        cnt = fs.readFileSync(sys_host_path, 'utf-8');
-    } catch (e) {
-        console.log(e.message);
+function getDemoJob () {
+    return {
+        is_demo: true,
+        title: 'Demo job',
+        queue: 'batch',
+        nodes: '1',
+        ppn: '1',
+        command: 'hostname',
+        editable: false,
+        content: "#!/bin/sh -f\n#PBS -N Demo\n#PBS -l nodes=1:ppn=1\n#PBS -q batch\n\n hostname\n"
     }
-
-    return cnt;
 }
 
 function tryToCreateWorkDir() {
@@ -95,120 +98,49 @@ function saveData(content) {
     });
 }
 
+function tryToLogin(data) {
+    var conn = new ssh.Client();
+    conn.on('ready', function () {
+        console.log('Client :: ready');
+        SH_event.emit('login_success');
+        login_data = data;
+    }).on('error', function (err) {
+        console.log('Client :: error: ', err);
+        SH_event.emit('login_fail')
+    }).connect({
+        host: data.host,
+        port: 22,
+        username: data.uname,
+        password: data.pswd
+    });
+}
 
-function apply_UNIX(content, success) {
-    let tmp_fn = path.join(work_path, 'tmp.txt');
-    if (content) {
-        fs.writeFileSync(tmp_fn, content, 'utf-8');
-    }
-
-    let cmd;
-    if (!sudo_pswd) {
-        cmd = [
-            'cat "' + tmp_fn + '" > ' + sys_host_path
-            , 'rm -rf ' + tmp_fn
-        ].join(' && ');
-    } else {
-        sudo_pswd = sudo_pswd.replace(/'/g, '\\x27');
-        cmd = [
-            'echo \'' + sudo_pswd + '\' | sudo -S chmod 777 ' + sys_host_path
-            , 'cat "' + tmp_fn + '" > ' + sys_host_path
-            , 'echo \'' + sudo_pswd + '\' | sudo -S chmod 644 ' + sys_host_path
-            // , 'rm -rf ' + tmp_fn
-        ].join(' && ');
-    }
-
-    exec(cmd, function (error, stdout, stderr) {
-        // command output is in stdout
-        if (error) {
-            if (!sudo_pswd) {
-                // 尝试让用户输入管理密码
-                SH_event.emit('show_app');
-                SH_event.emit('sudo_prompt', (pswd) => {
-                    sudo_pswd = pswd;
-                    tryToApply(null, success);
-                });
-            } else {
-                alert(stderr);
+function submitJob (job, data) {
+    console.log(data);
+    var conn = new ssh.Client();
+    conn.on('ready', function () {
+        let content = job.content || getContent(job);
+        conn.exec('echo "' + content.replace(/\"/g, "\\\"") + '" | qsub', function (err, stream) {
+            if (err) {
+                console.log('Client :: error ', error);
+                alert(lang.job_submit_error + ":" + error);
             }
-            return;
-        }
-
-        if (!error) {
-            after_apply(success);
-        }
-    });
+            stream.on('data', function (data) {
+                console.log('STDOUT: ' + data);
+            }).stderr.on('data', function (data) {
+                console.log('STDERR: ' + data);
+                alert(lang.job_submit_error + ":" + data);
+            })
+        })
+    }).on('error', function (err) {
+        alert(lang.job_submit_error + ":" + err);
+    }).connect({
+        host: data.host,
+        port: 22,
+        username: data.uname,
+        password: data.pswd
+    })
 }
-
-function _after_apply_unix(callback) {
-    let cmd_fn = path.join(work_path, '_restart_mDNSResponder.sh');
-
-    let cmd = [
-        'sudo launchctl unload -w /System/Library/LaunchDaemons/com.apple.mDNSResponder.plist'
-        , 'sudo launchctl load -w /System/Library/LaunchDaemons/com.apple.mDNSResponder.plist'
-        , 'sudo launchctl unload -w /System/Library/LaunchDaemons/com.apple.discoveryd.plist'
-        , 'sudo launchctl load -w /System/Library/LaunchDaemons/com.apple.discoveryd.plist'
-        , 'sudo killall -HUP mDNSResponder'
-    ].join('\n');
-
-    fs.writeFileSync(cmd_fn, cmd, 'utf-8');
-
-    exec(`/bin/sh ${cmd_fn}`, function (error, stdout, stderr) {
-        // command output is in stdout
-        if (error) {
-            console.log(error);
-        }
-        console.log(stdout, stderr);
-
-        callback();
-    });
-}
-
-function after_apply(callback) {
-
-    SH_event.emit('after_apply');
-
-    if (!sudo_pswd) {
-        callback();
-        return;
-    }
-
-    if (platform === 'darwin') {
-        _after_apply_unix(callback);
-        return;
-    }
-
-    callback();
-}
-
-function apply_Win32(content, success) {
-    // todo 判断写入权限
-    try {
-        fs.writeFileSync(sys_host_path, content, 'utf-8');
-    } catch (e) {
-        console.log(e);
-        let msg = e.message;
-        if (platform === 'win32') {
-            msg = `${msg}\n\n${lang.please_run_as_admin}`;
-        }
-        alert(msg);
-        return;
-    }
-    success && success();
-
-    // todo 更新 DNS 缓存
-}
-
-
-function tryToApply(content, success) {
-
-    if (platform !== 'win32') {
-        apply_UNIX(content, success);
-    } else {
-        apply_Win32(content, success);
-    }
-}
-
 
 // init
 tryToCreateWorkDir();
@@ -217,25 +149,17 @@ SH_event.on('test', () => {
     console.log('ttt');
 });
 
-SH_event.on('apply', (content, success) => {
-    tryToApply(content, () => {
-
-        let cmd = pref.get('after_cmd');
-        if (cmd) {
-            exec(cmd, function (error, stdout, stderr) {
-                // command output is in stdout
-                if (error) {
-                    alert(`AfterCmdError:\n\n${stderr}`);
-                }
-            });
-        }
-
-        success && success();
-    });
+SH_event.on('try_login', (data) => {
+    tryToLogin(data);
 });
 
-SH_event.on('sudo_pswd', (pswd) => {
-    sudo_pswd = pswd;
+SH_event.on('submit_job', (job) => {
+    if (!login_data.remote_host || !login_data.uname || !login_data.pswd) {
+        SH_event.emit('login_prompt');
+        return;
+    }
+
+    submitJob(job, login_data);
 });
 
 SH_event.on('show_app', (pswd) => {
@@ -285,6 +209,18 @@ SH_event.on('check_host_refresh', (host, force = false) => {
     });
 });
 
+function getContent(job) {
+    let content = "";
+    content += "#!/bin/sh -f\n";
+
+    if(job.title) content += "#PBS -N " + job.title + "\n";
+    if(job.queue) content += "#PBS -q " + job.queue + "\n";
+    if(job.nodes) content += "#PBS -l nodes=" + job.nodes + ":ppn=" + job.ppn + "\n";
+    if(job.command) content += "\n" + job.command + "\n";
+
+    return content;
+}
+
 /**
  * 如果本地没有 data 文件，认为是第一次运行
  */
@@ -292,18 +228,11 @@ function initGet() {
     let dd = require('./libs/default_data');
     let data = dd.make();
 
-    data.sys.content = getSysHosts();
-    data.list.push({
-        title: 'backup',
-        content: data.sys.content
-    });
-
     return data;
 }
-
 module.exports = {
     md5: md5,
-    getHosts: function () {
+    getJobs: function () {
         let data = null;
 
         if (!util.isFile(data_path)) {
@@ -320,28 +249,29 @@ module.exports = {
         }
 
         return {
-            sys: {
-                is_sys: true
-                , content: getSysHosts()
-            },
+            demo: getDemoJob(),
             list: data.list.map((i) => {
-                return {
+                let item = {
                     title: i.title || ''
-                    , content: i.content || ''
+                    , queue: i.queue || ''
+                    , nodes: i.nodes || ''
+                    , ppn: i.ppn || ''
+                    , command: i.command || ''
                     , on: !!i.on
-                    , where: i.where || 'local'
-                    , url: i.url || ''
+                    , editable: true
                     , last_refresh: i.last_refresh || null
                     , refresh_interval: i.refresh_interval || 0
-                }
+                };
+                item.content = i.content || getContent(i);
+                return item
             })
         };
     },
-    getSysHosts: function () {
-        return {
-            is_sys: true
-            , content: getSysHosts()
-        }
+    getContent: function (job) {
+        return getContent(job);
+    },
+    parseContent: function (content) {
+        return parseContent(content);
     },
     readFile: function (fn, callback) {
         fs.readFile(fn, 'utf-8', callback);

@@ -46,8 +46,6 @@ const languages = {
     },
     'cn': {
         add: '添加'
-        , cancel: '取消'
-        , ok: '确定'
         , add_host: '添加 host 规则'
         , edit_host: '修改 host'
         , host_title: 'host 方案名'

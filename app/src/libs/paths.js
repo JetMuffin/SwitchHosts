@@ -14,12 +14,14 @@ const sys_host_path = platform == 'win32' ?
 const home_path = util.getUserHome();
 const work_path = path.join(home_path, '.SwitchHosts');
 const data_path = path.join(work_path, 'data.json');
+const job_data_path = path.join(work_path, 'jobs.json');
 const preference_path = path.join(work_path, 'preferences.json');
 
 module.exports = {
     home_path: home_path,
     work_path: work_path,
     data_path: data_path,
+    job_data_path: job_data_path,
     preference_path: preference_path,
     sys_host_path: sys_host_path
 };

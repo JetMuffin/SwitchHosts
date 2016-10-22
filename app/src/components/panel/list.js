@@ -15,17 +15,17 @@ class List extends React.Component {
 
     constructor(props) {
         super(props);
-
         this.state = {
             current: this.props.current,
-            list: this.props.hosts.list
+            list: this.props.jobs.list
         };
-        this.last_content = this.props.hosts.sys.content;
+        console.log(this.props.current)
+        // this.last_content = this.props.hosts.sys.content;
 
         SH_event.on('imported', () => {
             this.setState({
                 current: this.props.current,
-                list: this.props.hosts.list
+                list: this.props.jobs.list
             }, () => {
                 SH_event.emit('change');
             });
@@ -41,7 +41,7 @@ class List extends React.Component {
             }
         });
 
-        SH_event.on('host_added', (data) => {
+        SH_event.on('job_added', (data) => {
             this.setState({
                 list: update(this.state.list, {$push: [data]})
             }, () => {
@@ -51,14 +51,14 @@ class List extends React.Component {
                     SH_event.emit('change', true);
                     let el = this.refs.items;
                     el.scrollTop = document.querySelector('.list-item.selected').offsetTop - el.offsetHeight + 50;
-                    this.checkUpdateHost(data);
+                    this.checkUpdateJob(data);
                 }, 100);
             });
 
         });
 
-        SH_event.on('host_edited', (data, host) => {
-            let idx = this.state.list.findIndex((item) => item == host);
+        SH_event.on('job_edited', (data, job) => {
+            let idx = this.state.list.findIndex((item) => item == job);
             if (idx == -1) return;
 
             this.setState({
@@ -68,20 +68,20 @@ class List extends React.Component {
 
                 setTimeout(() => {
                     SH_event.emit('change', true);
-                    this.checkUpdateHost(data, true);
+                    this.checkUpdateJob(data, true);
                 }, 100);
             });
         });
 
-        SH_event.on('host_refreshed', (data, host) => {
-            let idx = this.state.list.findIndex((item) => item == host);
+        SH_event.on('job_refreshed', (data, job) => {
+            let idx = this.state.list.findIndex((item) => item == job);
             if (idx == -1) return;
 
             this.setState({
                 list: update(this.state.list, {$splice: [[idx, 1, data]]})
             }, () => {
                 setTimeout(() => {
-                    if (host === this.state.current) {
+                    if (job === this.state.current) {
                         this.selectOne(data);
                     }
                     SH_event.emit('change', true);
@@ -89,10 +89,10 @@ class List extends React.Component {
             });
         });
 
-        SH_event.on('del_host', (host) => {
+        SH_event.on('del_job', (job) => {
             let list = this.state.list;
             let idx_to_del = list.findIndex((item) => {
-                return host === item;
+                return job === item;
             });
             if (idx_to_del == -1) return;
             // list.splice(idx_to_del, 1);
@@ -102,9 +102,9 @@ class List extends React.Component {
             }, () => {
                 setTimeout(() => {
                     let list = this.state.list;
-                    let next_host = list[idx_to_del] || list[list.length - 1] || this.props.hosts.sys;
-                    if (next_host) {
-                        this.selectOne(next_host);
+                    let next_job = list[idx_to_del] || list[list.length - 1] || this.props.jobs.demo;
+                    if (next_job) {
+                        this.selectOne(next_job);
                     }
                     SH_event.emit('change');
                 }, 100);
@@ -143,8 +143,8 @@ class List extends React.Component {
             });
         });
 
-        SH_event.on('loading_done', (host, data) => {
-            SH_event.emit('host_refreshed', data, host);
+        SH_event.on('loading_done', (job, data) => {
+            SH_event.emit('job_refreshed', data, job);
             // if (host == this.state.current || host._ == this.state.current) {
             //     setTimeout(() => {
             //         this.selectOne(this.state.current);
@@ -163,18 +163,18 @@ class List extends React.Component {
      * @param host
      * @param force {Boolean} 如果为 true，则只要是 remote 且 refresh_interval != 0，则强制更新
      */
-    checkUpdateHost(host, force = false) {
-        SH_event.emit('check_host_refresh', host, force);
+    checkUpdateJob(job, force = false) {
+        SH_event.emit('check_job_refresh', job, force);
     }
 
     autoCheckRefresh() {
         let remote_idx = -1;
-        this.state.list.map((host, idx) => {
-            if (host.where === 'remote') {
+        this.state.list.map((job, idx) => {
+            if (job.where === 'remote') {
                 remote_idx++;
             }
             setTimeout(() => {
-                SH_event.emit('check_host_refresh', host);
+                SH_event.emit('check_job_refresh', job);
             }, 1000 * 5 * remote_idx + idx);
         });
 
@@ -191,17 +191,17 @@ class List extends React.Component {
             success();
             SH_event.emit('save_data', this.state.list);
             SH_Agent.notify({
-                message: 'host updated.'
+                message: 'job updated.'
             });
         });
     }
 
-    selectOne(host) {
+    selectOne(job) {
         this.setState({
-            current: host
+            current: job
         });
 
-        this.props.setCurrent(host);
+        this.props.setCurrent(job);
     }
 
     toggleOne(idx, success) {
@@ -257,7 +257,7 @@ class List extends React.Component {
                     selectOne={this.selectOne.bind(this)}
                     current={this.state.current}
                     onToggle={(success)=> this.toggleOne(idx, success)}
-                    key={'host-' + idx}
+                    key={'job-' + idx}
                     dragOrder={(sidx, tidx) => this.dragOrder(sidx, tidx)}
                 />
             )
@@ -297,10 +297,10 @@ class List extends React.Component {
         return (
             <div id="sh-list">
                 <ListItem
-                    data={this.props.hosts.sys}
+                    data={this.props.jobs.demo}
                     selectOne={this.selectOne.bind(this)}
                     current={this.state.current}
-                    sys="1"/>
+                    demo="1"/>
                 <div ref="items" className="custom-items">
                     {this.customItems()}
                 </div>

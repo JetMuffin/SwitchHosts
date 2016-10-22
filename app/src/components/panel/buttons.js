@@ -16,7 +16,8 @@ export default class Buttons extends React.Component {
 
         this.state = {
             top_toggle_on: true,
-            search_on: false
+            search_on: false,
+            login_on: false,
         };
 
         this.on_items = null;
@@ -34,30 +35,33 @@ export default class Buttons extends React.Component {
             this.calcelSearch();
         });
 
+        SH_event.on('login_success', () => {
+            this.setState({
+                login_on: true
+            });
+        });
+
+        SH_event.on('login_fail', () => {
+            alert(SH_Agent.lang.login_failed);
+        });
+
         ipcRenderer.on('to_add_host', () => {
             SH_event.emit('add_host');
         });
     }
 
     static btnAdd() {
-        SH_event.emit('add_host');
+        SH_event.emit('add_job');
     }
 
     btnToggle() {
-        if (this.state.top_toggle_on) {
-            SH_event.emit('get_on_hosts', (items) => {
-                this.on_items = items;
-            });
+        if(!this.state.login_on) {
+            SH_event.emit('login_prompt');
+        } else {
+            this.setState({
+                login_on: false
+            })
         }
-
-        this.setState({
-            top_toggle_on: !this.state.top_toggle_on
-        }, () => {
-            SH_event.emit('top_toggle', this.state.top_toggle_on, this.on_items);
-            if (this.state.top_toggle_on) {
-                this.on_items = null;
-            }
-        });
     }
 
     btnSearch() {
@@ -99,8 +103,8 @@ export default class Buttons extends React.Component {
                     <i
                         className={classnames({
                             iconfont: 1,
-                            'icon-switchon': this.state.top_toggle_on,
-                            'icon-switchoff': !this.state.top_toggle_on
+                            'icon-earth': 1,
+                            'on': this.state.login_on
                         })}
                         onClick={() => this.btnToggle()}
                     />

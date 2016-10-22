@@ -13,11 +13,11 @@ import './panel.less';
 
 export default class Panel extends React.Component {
     render() {
-        let {current, hosts} = this.props;
+        let {current, hosts, jobs} = this.props;
 
         return (
             <div id="panel">
-                <List hosts={hosts} current={current} setCurrent={this.props.setCurrent}/>
+                <List hosts={hosts} current={current} jobs={jobs} setCurrent={this.props.setCurrent}/>
                 <SearchBar/>
                 <Buttons/>
             </div>

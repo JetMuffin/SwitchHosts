@@ -42,7 +42,7 @@ export default class Content extends React.Component {
 
 
     setValue(v) {
-        this.props.setHostContent(v);
+        this.props.setJobContent(v);
     }
 
     componentWillReceiveProps(next_props) {

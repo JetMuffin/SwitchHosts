@@ -38,6 +38,32 @@
         visibility: hidden;
       }
     }
+
+    textarea {
+      border-color: rgb(169, 169, 169);
+      width: 313px;
+    }
+
+    &.inline {
+      display: inline-block;
+
+      .cnt {
+        input {
+          width: 100px !important;
+        }
+      }
+
+      &.right {
+        .title {
+          width: 66px;
+          padding-left: 10px;
+        }
+
+        .cnt {
+          margin-left: 76px;
+        }
+      }
+    }
   }
 
   .last-refresh {

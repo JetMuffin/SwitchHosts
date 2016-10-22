@@ -8,16 +8,17 @@
 
 function makeDefaultData() {
     return {
-        sys: {
-            is_sys: true
-            , content: ''
+        demo: {
+            is_demo: true,
+            title: 'Demo job',
+            queue: 'batch',
+            nodes: '1',
+            ppn: '1',
+            command: 'hostname',
+            editable: true,
+            content: "#!/bin/sh -f\n#PBS -N Demo\n#PBS -l nodes=1:ppn=1\n#PBS -q batch\n\n hostname\n"
         },
-        list: [
-            {
-                title: 'my hosts',
-                content: '# input hosts here\n\n'
-            }
-        ]
+        list: []
     };
 }
 
