@@ -31,35 +31,35 @@ exports.init = function (app, sys_lang = 'en') {
                     label: lang.import,
                     accelerator: 'Alt+CommandOrControl+I',
                     click: () => {
-                        dialog.showOpenDialog({
-                            title: lang.import,
-                            defaultPath: path.join(paths.home_path, 'sh.json'),
-                            filters: [
-                                {name: 'JSON', extensions: ['json']},
-                                {name: 'All Files', extensions: ['*']}
-                            ]
-                        }, (fns) => {
-                            if (fns && fns.length > 0) {
-                                ipcMain.emit('to_import', fns[0]);
-                            }
-                        });
+                        // dialog.showOpenDialog({
+                        //     title: lang.import,
+                        //     defaultPath: path.join(paths.home_path, 'sh.json'),
+                        //     filters: [
+                        //         {name: 'JSON', extensions: ['json']},
+                        //         {name: 'All Files', extensions: ['*']}
+                        //     ]
+                        // }, (fns) => {
+                        //     if (fns && fns.length > 0) {
+                        //         ipcMain.emit('to_import', fns[0]);
+                        //     }
+                        // });
                     }
                 }, {
                     label: lang.export,
                     accelerator: 'Alt+CommandOrControl+E',
                     click: () => {
-                        dialog.showSaveDialog({
-                            title: lang.export,
-                            defaultPath: path.join(paths.home_path, 'sh.json'),
-                            filters: [
-                                {name: 'JSON', extensions: ['json']},
-                                {name: 'All Files', extensions: ['*']}
-                            ]
-                        }, (fn) => {
-                            if (fn) {
-                                ipcMain.emit('to_export', fn);
-                            }
-                        });
+                        // dialog.showSaveDialog({
+                        //     title: lang.export,
+                        //     defaultPath: path.join(paths.home_path, 'sh.json'),
+                        //     filters: [
+                        //         {name: 'JSON', extensions: ['json']},
+                        //         {name: 'All Files', extensions: ['*']}
+                        //     ]
+                        // }, (fn) => {
+                        //     if (fn) {
+                        //         ipcMain.emit('to_export', fn);
+                        //     }
+                        // });
                     }
                 }, {
                     type: 'separator'
@@ -67,7 +67,7 @@ exports.init = function (app, sys_lang = 'en') {
                     label: lang.preferences,
                     accelerator: 'CommandOrControl+,',
                     click: () => {
-                        app.mainWindow.webContents.send('show_preferences');
+                        // app.mainWindow.webContents.send('show_preferences');
                     }
                 }
             ]
@@ -160,12 +160,12 @@ exports.init = function (app, sys_lang = 'en') {
                 {
                     label: lang.feedback,
                     click () {
-                        shell.openExternal('https://github.com/oldj/SwitchHosts/issues');
+                        // shell.openExternal('https://github.com/oldj/SwitchHosts/issues');
                     }
                 }, {
                     label: lang.homepage,
                     click () {
-                        shell.openExternal('http://oldj.github.io/SwitchHosts/');
+                        // shell.openExternal('http://oldj.github.io/SwitchHosts/');
                     }
                 }
             ]

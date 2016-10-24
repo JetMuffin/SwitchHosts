@@ -103,14 +103,14 @@ function initTray(app) {
 function initMenu(app) {
     var menu;
 
-    // Help
-    menu = MacGap.Menu.getItem('Help').submenu;
-    menu.getItem('Feedback').callback = function () {
-        MacGap.openURL(config.url_feedback);
-    };
-    menu.getItem('Homepage').callback = function () {
-        MacGap.openURL(config.url_homepage);
-    };
+    // // Help
+    // menu = MacGap.Menu.getItem('Help').submenu;
+    // menu.getItem('Feedback').callback = function () {
+    //     MacGap.openURL(config.url_feedback);
+    // };
+    // menu.getItem('Homepage').callback = function () {
+    //     MacGap.openURL(config.url_homepage);
+    // };
 
     // SwitchHosts!
     menu = MacGap.Menu.getItem('SwitchHosts!').submenu;
