@@ -72,7 +72,7 @@ function makeTray(app, contents, sys_lang='en') {
     }
 
     tray = new Tray(path.join(__dirname, '..', 'assets', icon));
-    tray.setToolTip('SwitchHosts!');
+    tray.setToolTip('Toeque-tools');
 
     contents.send('get_host_list');
 

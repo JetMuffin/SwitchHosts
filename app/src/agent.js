@@ -278,7 +278,7 @@ module.exports = {
     },
     notify: (options) => {
         notifier.notify(Object.assign({
-            title: 'SwitchHosts!',
+            title: 'Torque-tool!',
             message: '',
             icon: path.join(__dirname, 'assets', 'logo_512.png')
         }, options));

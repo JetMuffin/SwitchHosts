@@ -23,7 +23,7 @@ const languages = {
         , tmp_recover: 'Recover rules.'
         , new_version_available: 'New version available, download now?'
         , is_updated_title: 'You are up to date!'
-        , is_updated: 'You already have the latest version of SwitchHosts! installed.'
+        , is_updated: 'You already have the latest version of Torque-tools installed.'
         , readonly: 'Read only'
         , where_local: 'local'
         , where_remote: 'remote'
