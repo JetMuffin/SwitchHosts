@@ -57,17 +57,47 @@ function getUserLang() {
 let lang_key = getUserLang();
 const lang = m_lang.getLang(lang_key);
 
-function getDemoJob () {
-    return {
+function getDemoJobs () {
+    return [{
         is_demo: true,
-        title: 'Demo job',
+        title: 'serial',
         queue: 'batch',
         nodes: '1',
         ppn: '1',
-        command: 'hostname',
+        directory: '/home/jlping/test',
+        command: './abc',
         editable: false,
-        content: "#!/bin/sh -f\n#PBS -N Demo\n#PBS -l nodes=1:ppn=1\n#PBS -q batch\n\n hostname\n"
-    }
+        content: "#!/bin/sh -f\n#PBS -N serial\n#PBS -l nodes=1:ppn=1\n#PBS -q batch\n\n cd /home/jlping/test\n\n ./abc\n"
+    }, {
+        is_demo: true,
+        title: 'parallel',
+        queue: 'batch',
+        nodes: '1',
+        ppn: '8',
+        directory: '/home/jlping/test',
+        command: '/share/apps/openmpi1.6.5-intel/bin/mpirun -np 8 /user1/jlping/test/pi ',
+        editable: false,
+        content: "#!/bin/sh -f\n#PBS -N parallel\n#PBS -l nodes=1:ppn=8\n#PBS -q batch\n\n cd /home/jlping/test\n\n /share/apps/openmpi1.6.5-intel/bin/mpirun -np 8 /user1/jlping/test/pi \n"
+    }, {
+        is_demo: true,
+        title: 'gauss',
+        queue: 'batch',
+        nodes: '1',
+        ppn: '1',
+        command: 'source $g09root/g09/bsd/g09.login \n cd $PBS_O_WORKDIR \n\n NPROCS=`wc -l $PBS_NODEFILE |gawk \'//{print $1}\'` \n LINDA=`cat $PBS_NODEFILE | uniq | tr \'\n\' "," | sed \'s|,$||\' ` \n NODE_NUM=`cat $PBS_NODEFILE|uniq |wc -l` \n NP_PER_NODE=`expr $NPROCS / $NODE_NUM`\' \n\n #echo the multi-node options \n echo "%NProcShared=$NP_PER_NODE" | cat - /user1/jlping/test/g09/test.in > temp$$.inp \n sed -i "1i%lindaworkers=$LINDA" temp$$.inp \n g09 < temp$$.inp > $PBS_JOBID.log \n rm -f temp$$.inp',
+        editable: false,
+        content: '#!/bin/sh -f\n#PBS -N gauss\n#PBS -l nodes=1:ppn=1\n#PBS -q batch\n\n source $g09root/g09/bsd/g09.login \n cd $PBS_O_WORKDIR \n\n NPROCS=`wc -l $PBS_NODEFILE |gawk \'//{print $1}\'` \n LINDA=`cat $PBS_NODEFILE | uniq | tr \'\n\' "," | sed \'s|,$||\' ` \n NODE_NUM=`cat $PBS_NODEFILE|uniq |wc -l` \n NP_PER_NODE=`expr $NPROCS / $NODE_NUM`\' \n\n #echo the multi-node options \n echo "%NProcShared=$NP_PER_NODE" | cat - /user1/jlping/test/g09/test.in > temp$$.inp \n sed -i "1i%lindaworkers=$LINDA" temp$$.inp \n g09 < temp$$.inp > $PBS_JOBID.log \n rm -f temp$$.inp \n'
+    }, {
+        is_demo: true,
+        title: 'vasp',
+        queue: 'batch',
+        nodes: '1',
+        ppn: '8',
+        directory: '/home/jlping/test/vasp',
+        command: '/share/apps/openmpi1.6.5-intel/bin/mpirun -np 8 /share/apps/vasp/vasp4/vasp.4.6/vasp',
+        editable: false,
+        content: "#!/bin/sh -f\n#PBS -N gauss\n#PBS -l nodes=1:ppn=8\n#PBS -q batch\n\n cd /home/jlping/test/vasp \n\n /share/apps/openmpi1.6.5-intel/bin/mpirun -np 8 /share/apps/vasp/vasp4/vasp.4.6/vasp"
+    }]
 }
 
 function tryToCreateWorkDir() {
@@ -108,7 +138,7 @@ function tryToLogin(data) {
         console.log('Client :: error: ', err);
         SH_event.emit('login_fail')
     }).connect({
-        host: data.host,
+        host: data.remote_host,
         port: 22,
         username: data.uname,
         password: data.pswd
@@ -127,6 +157,7 @@ function submitJob (job, data) {
             }
             stream.on('data', function (data) {
                 console.log('STDOUT: ' + data);
+                alert(lang.job_submit_info + ":" + data);
             }).stderr.on('data', function (data) {
                 console.log('STDERR: ' + data);
                 alert(lang.job_submit_error + ":" + data);
@@ -135,7 +166,7 @@ function submitJob (job, data) {
     }).on('error', function (err) {
         alert(lang.job_submit_error + ":" + err);
     }).connect({
-        host: data.host,
+        host: data.remote_host,
         port: 22,
         username: data.uname,
         password: data.pswd
@@ -216,6 +247,7 @@ function getContent(job) {
     if(job.title) content += "#PBS -N " + job.title + "\n";
     if(job.queue) content += "#PBS -q " + job.queue + "\n";
     if(job.nodes) content += "#PBS -l nodes=" + job.nodes + ":ppn=" + job.ppn + "\n";
+    if(job.directory) content += "\n" + "cd " + job.directory + "\n";
     if(job.command) content += "\n" + job.command + "\n";
 
     return content;
@@ -249,7 +281,7 @@ module.exports = {
         }
 
         return {
-            demo: getDemoJob(),
+            demo: getDemoJobs(),
             list: data.list.map((i) => {
                 let item = {
                     title: i.title || ''

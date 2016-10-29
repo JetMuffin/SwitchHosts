@@ -16,10 +16,10 @@ class List extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            current: this.props.current,
+            demos: this.props.demos,
             list: this.props.jobs.list
         };
-        console.log(this.props.current)
+        console.log(this.state.demos);
         // this.last_content = this.props.hosts.sys.content;
 
         SH_event.on('imported', () => {
@@ -248,6 +248,23 @@ class List extends React.Component {
         return contents.join(`\n\n`);
     }
 
+    demoItems() {
+        return this.state.demos.map((item, idx) => {
+            return (
+                <ListItem
+                    data={item}
+                    idx={idx}
+                    selectOne={this.selectOne.bind(this)}
+                    current={this.state.current}
+                    demo="1"
+                    key={'demo-' + idx}
+                    onToggle={(success)=> this.toggleOne(idx, success)}
+                    dragOrder={(sidx, tidx) => this.dragOrder(sidx, tidx)}
+                />
+            )
+        });
+    }
+
     customItems() {
         return this.state.list.map((item, idx) => {
             return (
@@ -296,11 +313,9 @@ class List extends React.Component {
     render() {
         return (
             <div id="sh-list">
-                <ListItem
-                    data={this.props.jobs.demo}
-                    selectOne={this.selectOne.bind(this)}
-                    current={this.state.current}
-                    demo="1"/>
+                <div ref="items" className="demo-items">
+                    {this.demoItems()}
+                </div>
                 <div ref="items" className="custom-items">
                     {this.customItems()}
                 </div>

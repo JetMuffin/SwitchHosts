@@ -22,6 +22,7 @@ export default class EditPrompt extends React.Component {
             nodes: '',
             ppn: '',
             command: '',
+            directory: '',
             editable: true,
             last_refresh: null,
             refresh_interval: 0,
@@ -43,6 +44,7 @@ export default class EditPrompt extends React.Component {
             nodes: '',
             ppn: '',
             command: '',
+            directory: '',
             last_refresh: null,
             refresh_interval: 0,
         });
@@ -70,6 +72,7 @@ export default class EditPrompt extends React.Component {
                 queue: job.queue,
                 ppn: job.ppn,
                 nodes: job.nodes,
+                directory: job.directory,
                 editable: true,
                 last_refresh: job.last_refresh || null,
                 refresh_interval: job.refresh_interval || 0
@@ -237,14 +240,28 @@ export default class EditPrompt extends React.Component {
                     </div>
                 </div>
                 <div className="ln">
+                    <div className="title">{SH_Agent.lang.job_directory
+                    }</div>
+                    <div className="cnt">
+                        <input
+                            type="text"
+                            ref="directory"
+                            name="text"
+                            value={this.state.directory}
+                            onChange={(e) => this.setState({directory: e.target.value})}
+                        />
+                    </div>
+                </div>
+                <div className="ln">
                     <div className="title">{SH_Agent.lang.job_command}</div>
                     <div className="cnt">
                             <textarea
                                 type="text"
                                 ref="command"
                                 name="text"
+                                value={this.state.command}
                                 onChange={(e) => this.setState({command: e.target.value})}
-                            >{this.state.command}</textarea>
+                            ></textarea>
                     </div>
                 </div>
                 {this.getEditOperations()}

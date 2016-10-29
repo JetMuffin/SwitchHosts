@@ -20,7 +20,8 @@ class App extends React.Component {
         let _data = SH_Agent.getJobs();
         this.state = {
             jobs: _data,
-            current: _data.demo,
+            demos: _data.demo,
+            current: _data.demo[0],
         };
 
         SH_event.on('after_apply', () => {
@@ -107,7 +108,7 @@ class App extends React.Component {
         let current = this.state.current;
         return (
             <div id="app" className={'platform-' + platform}>
-                <Panel jobs={this.state.jobs} current={current} setCurrent={this.setCurrent.bind(this)}/>
+                <Panel jobs={this.state.jobs} demos={this.state.demos} setCurrent={this.setCurrent.bind(this)}/>
                 <Content current={current} readonly={App.isReadOnly(current)}
                          setJobContent={this.setJobContent.bind(this)}/>
                 <div className="frames">

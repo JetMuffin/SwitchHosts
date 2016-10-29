@@ -21500,7 +21500,8 @@
 	        var _data = SH_Agent.getJobs();
 	        _this.state = {
 	            jobs: _data,
-	            current: _data.demo
+	            demos: _data.demo,
+	            current: _data.demo[0]
 	        };
 	
 	        SH_event.on('after_apply', function () {
@@ -21589,7 +21590,7 @@
 	            return _react2.default.createElement(
 	                'div',
 	                { id: 'app', className: 'platform-' + platform },
-	                _react2.default.createElement(_panel2.default, { jobs: this.state.jobs, current: current, setCurrent: this.setCurrent.bind(this) }),
+	                _react2.default.createElement(_panel2.default, { jobs: this.state.jobs, demos: this.state.demos, setCurrent: this.setCurrent.bind(this) }),
 	                _react2.default.createElement(_content2.default, { current: current, readonly: App.isReadOnly(current),
 	                    setJobContent: this.setJobContent.bind(this) }),
 	                _react2.default.createElement(
@@ -21669,16 +21670,16 @@
 	    _createClass(Panel, [{
 	        key: 'render',
 	        value: function render() {
-	            var _props = this.props;
-	            var current = _props.current;
-	            var hosts = _props.hosts;
-	            var jobs = _props.jobs;
+	            var _props = this.props,
+	                demos = _props.demos,
+	                hosts = _props.hosts,
+	                jobs = _props.jobs;
 	
 	
 	            return _react2.default.createElement(
 	                'div',
 	                { id: 'panel' },
-	                _react2.default.createElement(_list2.default, { hosts: hosts, current: current, jobs: jobs, setCurrent: this.props.setCurrent }),
+	                _react2.default.createElement(_list2.default, { hosts: hosts, demos: demos, jobs: jobs, setCurrent: this.props.setCurrent }),
 	                _react2.default.createElement(_searchbar2.default, null),
 	                _react2.default.createElement(_buttons2.default, null)
 	            );
@@ -22476,10 +22477,10 @@
 	        var _this = _possibleConstructorReturn(this, (List.__proto__ || Object.getPrototypeOf(List)).call(this, props));
 	
 	        _this.state = {
-	            current: _this.props.current,
+	            demos: _this.props.demos,
 	            list: _this.props.jobs.list
 	        };
-	        console.log(_this.props.current);
+	        console.log(_this.state.demos);
 	        // this.last_content = this.props.hosts.sys.content;
 	
 	        SH_event.on('imported', function () {
@@ -22735,22 +22736,44 @@
 	            return contents.join('\n\n');
 	        }
 	    }, {
-	        key: 'customItems',
-	        value: function customItems() {
+	        key: 'demoItems',
+	        value: function demoItems() {
 	            var _this5 = this;
 	
-	            return this.state.list.map(function (item, idx) {
+	            return this.state.demos.map(function (item, idx) {
 	                return _react2.default.createElement(_list_item2.default, {
 	                    data: item,
 	                    idx: idx,
 	                    selectOne: _this5.selectOne.bind(_this5),
 	                    current: _this5.state.current,
+	                    demo: '1',
+	                    key: 'demo-' + idx,
 	                    onToggle: function onToggle(success) {
 	                        return _this5.toggleOne(idx, success);
 	                    },
-	                    key: 'job-' + idx,
 	                    dragOrder: function dragOrder(sidx, tidx) {
 	                        return _this5.dragOrder(sidx, tidx);
+	                    }
+	                });
+	            });
+	        }
+	    }, {
+	        key: 'customItems',
+	        value: function customItems() {
+	            var _this6 = this;
+	
+	            return this.state.list.map(function (item, idx) {
+	                return _react2.default.createElement(_list_item2.default, {
+	                    data: item,
+	                    idx: idx,
+	                    selectOne: _this6.selectOne.bind(_this6),
+	                    current: _this6.state.current,
+	                    onToggle: function onToggle(success) {
+	                        return _this6.toggleOne(idx, success);
+	                    },
+	                    key: 'job-' + idx,
+	                    dragOrder: function dragOrder(sidx, tidx) {
+	                        return _this6.dragOrder(sidx, tidx);
 	                    }
 	                });
 	            });
@@ -22795,11 +22818,11 @@
 	            return _react2.default.createElement(
 	                'div',
 	                { id: 'sh-list' },
-	                _react2.default.createElement(_list_item2.default, {
-	                    data: this.props.jobs.demo,
-	                    selectOne: this.selectOne.bind(this),
-	                    current: this.state.current,
-	                    demo: '1' }),
+	                _react2.default.createElement(
+	                    'div',
+	                    { ref: 'items', className: 'demo-items' },
+	                    this.demoItems()
+	                ),
 	                _react2.default.createElement(
 	                    'div',
 	                    { ref: 'items', className: 'custom-items' },
@@ -22887,7 +22910,7 @@
 	    _createClass(ListItem, [{
 	        key: 'getTitle',
 	        value: function getTitle() {
-	            return this.is_demo ? SH_Agent.lang.demo_job_title : this.props.data.title || SH_Agent.lang.untitled;
+	            return this.is_demo ? SH_Agent.lang.demo_job_title + ' ' + this.props.data.title : this.props.data.title || SH_Agent.lang.untitled;
 	        }
 	    }, {
 	        key: 'beSelected',
@@ -22938,9 +22961,9 @@
 	            var re = this.state.search_re;
 	            if (!kw || kw === '/') return true;
 	
-	            var _props$data = this.props.data;
-	            var title = _props$data.title;
-	            var content = _props$data.content;
+	            var _props$data = this.props.data,
+	                title = _props$data.title,
+	                content = _props$data.content;
 	
 	
 	            if (re) {
@@ -22954,10 +22977,10 @@
 	        value: function render() {
 	            var _this2 = this;
 	
-	            var _props = this.props;
-	            var data = _props.data;
-	            var sys = _props.sys;
-	            var current = _props.current;
+	            var _props = this.props,
+	                data = _props.data,
+	                sys = _props.sys,
+	                current = _props.current;
 	
 	            var is_selected = data == current;
 	
@@ -23286,7 +23309,7 @@
 	
 	
 	// module
-	exports.push([module.id, "#sh-list .custom-items {\n  position: fixed;\n  width: 240px;\n  top: 36px;\n  bottom: 30px;\n  overflow: auto;\n}\n", ""]);
+	exports.push([module.id, "#sh-list .custom-items {\n  position: fixed;\n  width: 240px;\n  top: 144px;\n  bottom: 30px;\n  overflow: auto;\n}\n", ""]);
 	
 	// exports
 
@@ -23314,7 +23337,7 @@
 
 	"use strict";
 	
-	exports.version = [0, 0, 1, 4];
+	exports.version = [0, 0, 1, 32];
 
 /***/ },
 /* 196 */
@@ -32794,7 +32817,7 @@
 	
 	addLegacyProps(CodeMirror)
 	
-	CodeMirror.version = "5.19.1"
+	CodeMirror.version = "5.20.2"
 	
 	return CodeMirror;
 	
@@ -33341,7 +33364,7 @@
 	
 	
 	// module
-	exports.push([module.id, ".frame {\n  position: fixed;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  left: 0;\n}\n.frame .overlay {\n  position: absolute;\n  z-index: -1;\n  width: 100%;\n  height: 100%;\n  background: #000;\n  opacity: 0.5;\n}\n.frame .prompt {\n  margin: 60px auto;\n  min-width: 300px;\n  max-width: 600px;\n  background: #fff;\n  box-shadow: 0 0 4px 4px rgba(0, 0, 0, 0.1);\n}\n.frame .prompt .head {\n  padding: 20px;\n  font-size: 16px;\n  background: #f5f5f5;\n}\n.frame .prompt .body {\n  padding: 20px 20px;\n}\n.frame .prompt .body .ln {\n  line-height: 30px;\n  padding: 2px 0;\n}\n.frame .prompt .body .ln .title {\n  float: left;\n  width: 100px;\n  line-height: 18px;\n}\n.frame .prompt .body .ln .cnt {\n  margin-left: 100px;\n}\n.frame .prompt .body .ln .cnt input[type=text] {\n  width: 300px;\n  outline: none;\n  padding: 6px 10px;\n}\n.frame .prompt .body .ln .inform {\n  color: #999;\n  line-height: 18px;\n}\n.frame .prompt .body input {\n  padding: 6px 4px;\n}\n.frame .prompt .body input[type=password] {\n  letter-spacing: 8px;\n  width: 300px;\n  outline: none;\n  padding: 6px 10px;\n}\n.frame .prompt .foot {\n  padding: 20px;\n  background: #f5f5f5;\n  text-align: right;\n}\n.frame .prompt .foot .button {\n  display: inline-block;\n  background: #ccc;\n  padding: 8px 20px;\n  margin-left: 1em;\n  cursor: pointer;\n}\n.frame .prompt .foot .button:hover {\n  background: #ddd;\n}\n.frame .prompt .foot .button.btn-default {\n  background: #05a;\n  color: #fff;\n}\n.frame .prompt .foot .button.btn-default:hover {\n  background: #0077ee;\n}\n", ""]);
+	exports.push([module.id, ".frame {\n  position: fixed;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  left: 0;\n}\n.frame .overlay {\n  position: absolute;\n  z-index: -1;\n  width: 100%;\n  height: 100%;\n  background: #000;\n  opacity: 0.5;\n}\n.frame .prompt {\n  margin: 60px auto;\n  min-width: 300px;\n  max-width: 600px;\n  background: #fff;\n  box-shadow: 0 0 4px 4px rgba(0, 0, 0, 0.1);\n}\n.frame .prompt .head {\n  padding: 20px;\n  font-size: 16px;\n  background: #f5f5f5;\n}\n.frame .prompt .body {\n  padding: 20px 20px;\n}\n.frame .prompt .body .ln {\n  line-height: 30px;\n  padding: 2px 0;\n}\n.frame .prompt .body .ln .title {\n  float: left;\n  width: 95px;\n  line-height: 18px;\n}\n.frame .prompt .body .ln .cnt {\n  margin-left: 100px;\n}\n.frame .prompt .body .ln .cnt input[type=text] {\n  width: 300px;\n  outline: none;\n  padding: 6px 10px;\n}\n.frame .prompt .body .ln .inform {\n  color: #999;\n  line-height: 18px;\n}\n.frame .prompt .body input {\n  padding: 6px 4px;\n}\n.frame .prompt .body input[type=password] {\n  letter-spacing: 8px;\n  width: 300px;\n  outline: none;\n  padding: 6px 10px;\n}\n.frame .prompt .foot {\n  padding: 20px;\n  background: #f5f5f5;\n  text-align: right;\n}\n.frame .prompt .foot .button {\n  display: inline-block;\n  background: #ccc;\n  padding: 8px 20px;\n  margin-left: 1em;\n  cursor: pointer;\n}\n.frame .prompt .foot .button:hover {\n  background: #ddd;\n}\n.frame .prompt .foot .button.btn-default {\n  background: #05a;\n  color: #fff;\n}\n.frame .prompt .foot .button.btn-default:hover {\n  background: #0077ee;\n}\n", ""]);
 	
 	// exports
 
@@ -33381,7 +33404,7 @@
 	
 	
 	// module
-	exports.push([module.id, ".frame {\n  position: fixed;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  left: 0;\n}\n.frame .overlay {\n  position: absolute;\n  z-index: -1;\n  width: 100%;\n  height: 100%;\n  background: #000;\n  opacity: 0.5;\n}\n.frame .prompt {\n  margin: 60px auto;\n  min-width: 300px;\n  max-width: 600px;\n  background: #fff;\n  box-shadow: 0 0 4px 4px rgba(0, 0, 0, 0.1);\n}\n.frame .prompt .head {\n  padding: 20px;\n  font-size: 16px;\n  background: #f5f5f5;\n}\n.frame .prompt .body {\n  padding: 20px 20px;\n}\n.frame .prompt .body .ln {\n  line-height: 30px;\n  padding: 2px 0;\n}\n.frame .prompt .body .ln .title {\n  float: left;\n  width: 100px;\n  line-height: 18px;\n}\n.frame .prompt .body .ln .cnt {\n  margin-left: 100px;\n}\n.frame .prompt .body .ln .cnt input[type=text] {\n  width: 300px;\n  outline: none;\n  padding: 6px 10px;\n}\n.frame .prompt .body .ln .inform {\n  color: #999;\n  line-height: 18px;\n}\n.frame .prompt .body input {\n  padding: 6px 4px;\n}\n.frame .prompt .body input[type=password] {\n  letter-spacing: 8px;\n  width: 300px;\n  outline: none;\n  padding: 6px 10px;\n}\n.frame .prompt .foot {\n  padding: 20px;\n  background: #f5f5f5;\n  text-align: right;\n}\n.frame .prompt .foot .button {\n  display: inline-block;\n  background: #ccc;\n  padding: 8px 20px;\n  margin-left: 1em;\n  cursor: pointer;\n}\n.frame .prompt .foot .button:hover {\n  background: #ddd;\n}\n.frame .prompt .foot .button.btn-default {\n  background: #05a;\n  color: #fff;\n}\n.frame .prompt .foot .button.btn-default:hover {\n  background: #0077ee;\n}\n.frame .prompt {\n  width: 480px;\n}\n", ""]);
+	exports.push([module.id, ".frame {\n  position: fixed;\n  top: 0;\n  right: 0;\n  bottom: 0;\n  left: 0;\n}\n.frame .overlay {\n  position: absolute;\n  z-index: -1;\n  width: 100%;\n  height: 100%;\n  background: #000;\n  opacity: 0.5;\n}\n.frame .prompt {\n  margin: 60px auto;\n  min-width: 300px;\n  max-width: 600px;\n  background: #fff;\n  box-shadow: 0 0 4px 4px rgba(0, 0, 0, 0.1);\n}\n.frame .prompt .head {\n  padding: 20px;\n  font-size: 16px;\n  background: #f5f5f5;\n}\n.frame .prompt .body {\n  padding: 20px 20px;\n}\n.frame .prompt .body .ln {\n  line-height: 30px;\n  padding: 2px 0;\n}\n.frame .prompt .body .ln .title {\n  float: left;\n  width: 95px;\n  line-height: 18px;\n}\n.frame .prompt .body .ln .cnt {\n  margin-left: 100px;\n}\n.frame .prompt .body .ln .cnt input[type=text] {\n  width: 300px;\n  outline: none;\n  padding: 6px 10px;\n}\n.frame .prompt .body .ln .inform {\n  color: #999;\n  line-height: 18px;\n}\n.frame .prompt .body input {\n  padding: 6px 4px;\n}\n.frame .prompt .body input[type=password] {\n  letter-spacing: 8px;\n  width: 300px;\n  outline: none;\n  padding: 6px 10px;\n}\n.frame .prompt .foot {\n  padding: 20px;\n  background: #f5f5f5;\n  text-align: right;\n}\n.frame .prompt .foot .button {\n  display: inline-block;\n  background: #ccc;\n  padding: 8px 20px;\n  margin-left: 1em;\n  cursor: pointer;\n}\n.frame .prompt .foot .button:hover {\n  background: #ddd;\n}\n.frame .prompt .foot .button.btn-default {\n  background: #05a;\n  color: #fff;\n}\n.frame .prompt .foot .button.btn-default:hover {\n  background: #0077ee;\n}\n.frame .prompt {\n  width: 480px;\n}\n", ""]);
 	
 	// exports
 
@@ -33443,6 +33466,7 @@
 	            nodes: '',
 	            ppn: '',
 	            command: '',
+	            directory: '',
 	            editable: true,
 	            last_refresh: null,
 	            refresh_interval: 0,
@@ -33468,6 +33492,7 @@
 	                nodes: '',
 	                ppn: '',
 	                command: '',
+	                directory: '',
 	                last_refresh: null,
 	                refresh_interval: 0
 	            });
@@ -33498,6 +33523,7 @@
 	                    queue: job.queue,
 	                    ppn: job.ppn,
 	                    nodes: job.nodes,
+	                    directory: job.directory,
 	                    editable: true,
 	                    last_refresh: job.last_refresh || null,
 	                    refresh_interval: job.refresh_interval || 0
@@ -33716,23 +33742,42 @@
 	                    _react2.default.createElement(
 	                        'div',
 	                        { className: 'title' },
+	                        SH_Agent.lang.job_directory
+	                    ),
+	                    _react2.default.createElement(
+	                        'div',
+	                        { className: 'cnt' },
+	                        _react2.default.createElement('input', {
+	                            type: 'text',
+	                            ref: 'directory',
+	                            name: 'text',
+	                            value: this.state.directory,
+	                            onChange: function onChange(e) {
+	                                return _this4.setState({ directory: e.target.value });
+	                            }
+	                        })
+	                    )
+	                ),
+	                _react2.default.createElement(
+	                    'div',
+	                    { className: 'ln' },
+	                    _react2.default.createElement(
+	                        'div',
+	                        { className: 'title' },
 	                        SH_Agent.lang.job_command
 	                    ),
 	                    _react2.default.createElement(
 	                        'div',
 	                        { className: 'cnt' },
-	                        _react2.default.createElement(
-	                            'textarea',
-	                            {
-	                                type: 'text',
-	                                ref: 'command',
-	                                name: 'text',
-	                                onChange: function onChange(e) {
-	                                    return _this4.setState({ command: e.target.value });
-	                                }
-	                            },
-	                            this.state.command
-	                        )
+	                        _react2.default.createElement('textarea', {
+	                            type: 'text',
+	                            ref: 'command',
+	                            name: 'text',
+	                            value: this.state.command,
+	                            onChange: function onChange(e) {
+	                                return _this4.setState({ command: e.target.value });
+	                            }
+	                        })
 	                    )
 	                ),
 	                this.getEditOperations()
@@ -33762,10 +33807,9 @@
 	            // [0.002778, `10s`], // test only
 	            [1, '1 ' + SH_Agent.lang.hour], [24, '24 ' + SH_Agent.lang.hours], [168, '7 ' + SH_Agent.lang.days]];
 	            return k.map(function (_ref, idx) {
-	                var _ref2 = _slicedToArray(_ref, 2);
-	
-	                var v = _ref2[0];
-	                var n = _ref2[1];
+	                var _ref2 = _slicedToArray(_ref, 2),
+	                    v = _ref2[0],
+	                    n = _ref2[1];
 	
 	                return _react2.default.createElement(
 	                    'option',
@@ -34085,8 +34129,8 @@
 	        key: 'getLanguageOptions',
 	        value: function getLanguageOptions() {
 	            return _lang2.default.lang_list.map(function (_ref, idx) {
-	                var key = _ref.key;
-	                var name = _ref.name;
+	                var key = _ref.key,
+	                    name = _ref.name;
 	
 	                return _react2.default.createElement(
 	                    'option',
@@ -34178,7 +34222,7 @@
 	        tmp_recover: 'Recover rules.',
 	        new_version_available: 'New version available, download now?',
 	        is_updated_title: 'You are up to date!',
-	        is_updated: 'You already have the latest version of SwitchHosts! installed.',
+	        is_updated: 'You already have the latest version of Torque-tools installed.',
 	        readonly: 'Read only',
 	        where_local: 'local',
 	        where_remote: 'remote',
@@ -34200,7 +34244,7 @@
 	        toggle_dock_icon: 'Toggle Dock Icon',
 	        no_valid_host_found: 'There is no valid host in the file.',
 	        confirm_import: 'You sure you want to import it? The original rules will be overwriten, this operation can not be undone.',
-	        please_run_as_admin: 'Please run SwitchHosts! as an Administrator.',
+	        please_run_as_admin: 'Please run Torque-tools as an Administrator.',
 	        preferences: 'Preferences',
 	        language: 'Language',
 	        should_restart_after_change_language: 'Should relaunch this App after changing language.',
@@ -34242,7 +34286,9 @@
 	        job_command: '任务命令',
 	        job_title_cant_be_empty: '任务标题不能为空！',
 	        job_list_title: '历史任务列表',
+	        job_directory: '工作目录',
 	        job_submit_error: '任务提交错误',
+	        job_submit_info: '任务提交成功',
 	        demo_job_title: '任务示例',
 	        login_title: '请输入您的登录信息',
 	        login_remote_host: '远程主机地址',
@@ -34286,7 +34332,7 @@
 	        toggle_dock_icon: '显示/隐藏 Dock 图标',
 	        no_valid_host_found: '所指定的文件中未找到合法的 host 配置',
 	        confirm_import: '确定要导入吗？原方案列表将被覆盖，此操作不可撤销。',
-	        please_run_as_admin: '请以管理员身份运行 SwitchHosts!',
+	        please_run_as_admin: '请以管理员身份运行 Torque-tools',
 	        preferences: '设置',
 	        language: '语言',
 	        should_restart_after_change_language: '修改语言后需要重启应用方可生效。',

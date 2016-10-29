@@ -38,13 +38,13 @@ gulp.task('pack', () => {
 
     let cmds = `
 # for macOS
-#electron-packager . 'SwitchHosts!' --platform=darwin --arch=x64 --overwrite --asar=true --prune --icon=../assets/app.icns --ignore=node_modules/.bin --ignore=.git --ignore=dist --ignore=node_modules/electron-* --out=dist --app-version=${v1} --build-version=${v2}
+electron-packager . 'SwitchHosts!' --platform=darwin --arch=x64 --overwrite --asar=true --prune --icon=../assets/app.icns --ignore=node_modules/.bin --ignore=.git --ignore=dist --ignore=node_modules/electron-* --out=dist --app-version=${v1} --build-version=${v2}
 
 # for windows x64
-electron-packager . 'SwitchHosts!' --platform=win32  --arch=x64 --overwrite --asar=true --prune --icon=../assets/app.ico  --ignore=node_modules/.bin --ignore=.git --ignore=dist --ignore=node_modules/electron-* --out=dist --app-version=${v1} --build-version=${v2}
+#electron-packager . 'SwitchHosts!' --platform=win32  --arch=x64 --overwrite --asar=true --prune --icon=../assets/app.ico  --ignore=node_modules/.bin --ignore=.git --ignore=dist --ignore=node_modules/electron-* --out=dist --app-version=${v1} --build-version=${v2}
 
 # for windows ia32
-electron-packager . 'SwitchHosts!' --platform=win32  --arch=ia32 --overwrite --asar=true --prune --icon=../assets/app.ico  --ignore=node_modules/.bin --ignore=.git --ignore=dist --ignore=node_modules/electron-* --out=dist --app-version=${v1} --build-version=${v2}
+#electron-packager . 'SwitchHosts!' --platform=win32  --arch=ia32 --overwrite --asar=true --prune --icon=../assets/app.ico  --ignore=node_modules/.bin --ignore=.git --ignore=dist --ignore=node_modules/electron-* --out=dist --app-version=${v1} --build-version=${v2}
 `;
 
     console.log(`start packing, v: ${v1}.${v2} ..`);
@@ -54,8 +54,8 @@ electron-packager . 'SwitchHosts!' --platform=win32  --arch=ia32 --overwrite --a
         if (error) {
             console.error(`exec error: ${error}`);
         }
-        // if (stdout) console.log(`${stdout}`);
-        // if (stderr) console.log(`${stderr}`);
+        if (stdout) console.log(`${stdout}`);
+        if (stderr) console.log(`${stderr}`);
     });
 });
 

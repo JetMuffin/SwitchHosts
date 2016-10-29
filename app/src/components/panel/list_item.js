@@ -40,7 +40,7 @@ export default class ListItem extends React.Component {
     }
 
     getTitle() {
-        return this.is_demo ? SH_Agent.lang.demo_job_title : this.props.data.title || SH_Agent.lang.untitled;
+        return this.is_demo ? SH_Agent.lang.demo_job_title + ' ' + this.props.data.title : this.props.data.title || SH_Agent.lang.untitled;
     }
 
     beSelected() {

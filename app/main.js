@@ -38,6 +38,8 @@ function createWindow() {
     // and load the index.html of the app.
     mainWindow.loadURL(`file://${__dirname}/index.html?lang=${user_language}`);
 
+    // mainWindow.webContents.openDevTools();
+    
     if (process.env && process.env.ENV === 'dev') {
         // Open the DevTools.
         mainWindow.webContents.openDevTools();
